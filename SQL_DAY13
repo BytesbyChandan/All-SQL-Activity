@@ -1,0 +1,35 @@
+use world;
+Select name, indepyear, indepyear+100, ifnull(indepyear, 0) from country;
+Select name, indepyear, lifeexpectancy, coalesce(indepyear, lifeexpectancy, name) from country;
+
+-- case statement
+select name, population, indepyear, 
+if(indepyear>1947, 'After India',
+	if(indepyear>1920,'just after 1920','Before India Independence')) as If_Condition
+from country;
+
+select name, population, indepyear,
+case 
+	when indepyear>1947 then 'after 1947'
+    when indepyear>1920 then 'only after 1919'
+	else 'else condition'
+end
+from country; 
+
+-- q. print the continent name, nummber of countries with the category of the continent column
+-- if the num of countries 10 se jyda small scale, 
+-- 15 se jyda aveg size continent, au 25 se jyda to large scale
+select * from country;
+Select continent, count(*) as 'Total_country',
+case 
+	when  count(*)>25
+							then 'Large scale continent'
+    when count(*)>15
+							then 'Average size continent'
+	else 'small scale continent'
+    end as c
+from country group by continent;
+		
+
+
+
