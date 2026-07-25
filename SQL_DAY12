@@ -1,0 +1,8 @@
+use joinsdb;
+use Assignment_joins;
+
+Select d.dept_name, count(e.emp_id) as 'Employee_Count'
+from Employees as e
+join Departments as d
+	on e.dept_id = d.dept_id
+group by d.dept_name;
