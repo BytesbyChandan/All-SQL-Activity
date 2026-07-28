@@ -1,0 +1,46 @@
+create database corr_db;
+use corr_db;
+create table employee_c(id int, name varchar(10), salary int);
+insert into employee_c values(1,'a', 100), (2, 'b', 250), (3,'c', 400), (4,'d',300);
+-- highest salary
+select max(salary) from employee_c;
+select * from employee_c where salary = 400;
+
+-- min salary
+select min(salary) from employee_c; -- 100
+select * from employee_c where salary = 100;
+
+-- nested query
+select * from employee_c where salary = (select min(salary) from employee_c);
+
+select max(salary) from employee_c; -- 400
+-- subquery with maximum salary
+select * from employee_c where salary = (Select max(salary) from employee_c);
+
+insert into employee_c values(5,'aman',250);
+select * from employee_c;
+
+
+select salary from employee_c where name = 'b';
+select * from employee_c where salary = (select salary from employee_c where name = 'b');
+
+-- Average salary
+select avg(Salary) from employee_c;
+Select id, name from employee_c where salary>(select avg(Salary) from employee_c);
+
+use world;
+select * from city;
+
+-- q1
+select name from city where district = (select district from city where name = 'abu dhabi');
+
+-- q2
+select * from city where population = (select max(population) from city);
+
+-- q3
+select district, name from city where countrycode = (select countrycode from city where name = 'herat');
+
+-- q4 
+Select district, name, population from city where countrycode = (select countrycode from city where name = 'amsterdam')
+order by population asc;
+
