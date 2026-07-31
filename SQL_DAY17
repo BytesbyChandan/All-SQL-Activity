@@ -1,0 +1,6 @@
+use corr_db;
+create table order1 (orderid int, name varchar(20), amount int);
+insert into order1 values(1,'a', 100), (2, 'a', 200), (3,'a', 300), (4,'b',400), (5,'b',300);
+select * from order1;
+Select orderid, name, amount from order1 as o_outer
+where amount = (select max(amount) from order1 where name = o_outer.name);
