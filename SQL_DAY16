@@ -1,0 +1,27 @@
+create database corr_db;
+use corr_db;
+create table employee_c(id int, name varchar(10), salary int);
+insert into employee_c values(1,'a', 100), (2, 'b', 250), (3,'c', 400), (4,'d',300), (5,'a',300);
+
+-- in
+select * from employee_c
+where  salary in (select salary from employee_c where name = 'a');
+
+
+-- =any
+select * from employee_c
+where  salary =any (select salary from employee_c where name = 'a');
+
+-- <any
+select * from employee_c
+where  salary <any (select salary from employee_c where name = 'a');
+
+-- >any
+select * from employee_c
+where  salary >any (select salary from employee_c where name = 'a');
+
+-- >all
+select * from employee_c
+where  salary >all (select salary from employee_c where name = 'a');
+
+-- practice
