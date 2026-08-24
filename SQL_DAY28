@@ -1,0 +1,30 @@
+create database testdb6;
+use testdb6;
+create table testdb6.employee(id int, name varchar(20));
+select * from testdb6.employee;
+
+create table testdb6.employee2(id int, name varchar(20));
+select * from employee2;
+
+-- DDL ALter
+alter table employee2 add column salary int;
+select * from employee2;
+alter table employee2 drop column id;
+select * from employee2;
+
+desc table testdb6.employee2;
+alter table employee2 modify column  name int;
+alter table employee2 add column emp_id int;
+alter table employee2 add constraint unique(name);
+desc table employee2;
+
+alter table employee2 modify column emp_id int  not null;
+alter table employee2 rename column emp_id to id;
+alter table testdb6.emmployee2 rename to employee3;
+
+-- truncate
+select * from employee2;
+insert into employee2 values(chandan, 200000, 7);
+
+
+
