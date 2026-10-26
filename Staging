@@ -1,0 +1,58 @@
+use testdb;
+select current_database();
+use schema test_schema;
+
+create or replace stage stg;
+
+desc stage stg;
+list @stg;
+
+
+select $1,$2,$3
+from @stg/practicle.json;
+
+create or replace table data_fetching(details variant);
+
+copy into data_fetching
+from @stg/practicle.json
+file_format=(type='json');
+
+select * from data_fetching;
+
+delete from data_fetching;
+
+select details:Name as Name,
+        details:age as Age,
+        details:roll_no as Roll_numm
+from data_fetching;
+
+create or replace table data_fetching_2(details variant);
+copy into data_fetching_2
+from @stg/practicle2.json
+file_format=(type='json',strip_outer_array=true);
+
+Select * from data_fetching_2;
+select details:Name as name,
+       details:roll_no as roll_num,
+       details:age as Age
+      from data_fetching_2;
+
+
+create or replace table data_fetching_3(all_detail variant);
+copy into data_fetching_3
+from @stg/practicle3.json
+file_format=(type='json');
+
+
+SELECT * from data_fetching_3;
+Select all_detail:roll_no as roll_no,
+       all_detail:Name as Name,
+       all_detail:Marks[0] as sub1,
+       all_detail:Marks[1] as sub2,
+       all_detail:Marks[2] as Sub3
+from data_fetching_3;
+
+
+
+
+
