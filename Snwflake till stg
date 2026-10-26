@@ -1,0 +1,129 @@
+create database if not exists all_practice;
+select current_database();
+create schema all_data;
+use all_practice;
+use schema all_data;
+
+create or replace stage all_stg;
+desc stage all_stg;
+list @all_stg;
+
+Select $1, $2, $3, $4, $5, $6, $7, $8 from @all_stg/bank_transactions.csv;
+create or replace table all_csv_data(
+transaction_id int, 
+customer_id int,
+customer_name varchar(20),
+transaction_date date,
+transaction_type varchar(10),
+amount numeric,
+city varchar(10),
+status varchar(10)
+);
+
+copy into all_csv_data
+from @all_stg/bank_transactions.csv
+file_format = (type = csv, skip_header=1);
+
+select * from all_csv_data;
+
+create or replace table all_csv_data_1(
+transaction_id int, 
+customer_id int,
+customer_name varchar(20),
+transaction_date date,
+transaction_type varchar(10),
+amount numeric,
+city varchar(10),
+status varchar(10),
+status_code varchar(10)
+);
+
+copy into all_csv_data_1
+from (Select $1, $2, $3, $4, $5, $6, $7, $8, substr($8, 0, 1) from @all_stg/bank_transactions.csv)
+file_format = (type=csv, skip_header = 1);
+
+select * from all_csv_data_1;
+
+-- q1
+select transaction_id, transaction_type, sum(amount) as Total_per_type
+from all_csv_data_1
+group by transaction_type, transaction_id
+order by Total_per_type DESC;
+
+-- q2
+Select * from all_csv_data_1 where status='SUCCESS';
+
+-- q3
+select * from all_csv_data_1
+where amount = 
+(Select max(amount)
+from all_csv_data_1);
+
+-- q4
+select city ,count(transaction_id) as num_of_transaction
+from all_csv_data_1
+group by city;
+
+create or replace table all_json_data(
+all_details variant
+);
+
+copy into all_json_data
+from @all_stg/bank_transaction.json
+file_format = (type=json, strip_outer_array=true);
+
+delete from all_json_data;
+select * from all_json_data;
+select
+    all_details:transaction_id as Transaction_id,
+    all_details:customer:name as Customer_Name,
+    all_details:customer:city as City,
+    all_details:transaction:amount as Amount,
+    all_details:transaction:status as Status,
+    f.value as tag
+from all_json_data,
+lateral flatten(input => all_details:tags) as f;
+
+create or replace stage all_ext_stg
+url = 's3://all-data-bucket-2310/'
+credentials = (
+AWS_Key_Id =  
+AWS_Secret_Key = 
+)
+file_format = (skip_header=1);
+
+desc stage all_ext_stg;
+list @all_ext_stg;
+
+create or replace table all_csv_data_s3(
+transaction_id int, 
+customer_id int,
+customer_name varchar(20),
+transaction_date date,
+transaction_type varchar(10),
+amount numeric,
+city varchar(10),
+status varchar(10)
+);
+
+copy into all_csv_data_s3
+from @all_ext_stg/bank_transactions.csv;
+
+select *  from all_csv_data_s3;
+
+create or replace table all_json_data_s3(
+detail variant
+);
+
+copy into all_json_data_s3
+from @all_ext_stg/bank_transaction.json
+file_format = (type='json', strip_outer_array=true);
+
+select * from all_json_data_s3;
+select 
+    detail:customer:city as City,
+    f.value as Tag
+from all_json_data_s3,
+lateral flatten(input => detail:tags) as f;
+
+
