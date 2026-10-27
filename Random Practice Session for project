@@ -1,0 +1,265 @@
+-- checking missing values
+Select 
+    count(*) as Total_records,
+    count(*)-count(longitude) as Missing_longitude,
+    count(*)-count(latitude) as Missing_latitude,
+    count(*)-count(callsign) as missing_callsign
+from flight_tracking;
+
+-- checking country distribution
+Select 
+    origin_country,
+    count(*) as Total_Aircraft,
+from flight_tracking
+group by origin_country
+order by Total_Aircraft DESC
+limit 10;
+
+-- How many aircraft are on ground and currently flying
+Select 
+    on_ground, 
+    count(*) as Total_Aircraft
+from flight_tracking
+group by on_ground;
+
+-- Which 10 countries have the highest number of aircraft in the current flight snapshot.
+Select 
+    origin_country, 
+    count(*) as Total_Aircraft
+from flight_tracking
+group by origin_country
+order by Total_Aircraft desc
+limit 10;
+
+-- which country have the highest average aircraft speed
+Select 
+    origin_country, 
+    round(avg(velocity),2) as Highest_avg_speed
+from flight_tracking
+where velocity is not null
+group by origin_country
+order by Highest_avg_speed DESC
+limit 10;
+
+-- Which 10 countries have the highest average flight altitude.
+Select 
+    origin_country,
+    round(avg(baro_altitude),2) as Highest_avg_flight_altitude
+from flight_tracking
+where baro_altitude is not null
+group by origin_country
+order by Highest_avg_flight_altitude DESC
+limit 10;
+
+-- which 10 aircraft have the highest recorded velocity in our dataset.
+Select 
+    icao24, 
+    callsign,
+    origin_country,
+    velocity
+from flight_tracking
+where velocity is not null
+order by velocity DESC
+limit 10;
+
+-- How many aircraft from each company are flying versus on the ground.
+Select 
+    origin_country,
+    on_ground,
+    count(*) as Air_count
+from flight_tracking
+group by origin_country, on_ground
+order by origin_country, Air_count DESC;
+
+-- How many country have missing callsigns in each country.
+Select 
+    origin_country,
+    count(*) as count_Missing_callsign
+from flight_tracking
+where callsign is null 
+group by origin_country
+order by count_Missing_callsign DESC
+limit 10;
+
+-- for each country, what percentage of its recorded aircraft are on the ground.
+Select 
+    origin_country,
+    count(*) as total_aircraft,
+    sum (case 
+            when on_ground=true 
+            then 1 
+            else 0 
+        end) as grounded_aircraft,
+    round((grounded_aircraft/total_aircraft)*100,2) as Ground_Percentage
+from flight_tracking
+group by origin_country
+order by Ground_Percentage DESC
+limit 10;
+
+select * from flight_tracking;
+-- flight altitude categorization
+with flight_category as(
+    Select icao24,
+        case 
+            when baro_altitude<3000 then 'Low Altitude'
+            when baro_altitude>3000 and baro_altitude<8000 then 'Medium Altitude'
+            else 'High Altitude'
+        end as altitude_category
+    from flight_tracking
+    where baro_altitude is not null
+)
+Select 
+    altitude_category, 
+    count(*) as total_flight    
+from flight_category
+group by altitude_category;
+
+-- find the top 5 countries with the highest average aircraft velocity
+with country_velocity as (
+    select 
+        origin_country,
+        velocity
+    from flight_tracking
+    where velocity is not null
+)
+Select 
+    origin_country,
+    avg(velocity) as Avg_velocity
+from country_velocity
+group by origin_country
+order by Avg_velocity
+limit 5;
+
+-- Categorized aircraft based on their velocity
+with flight_speed as(
+    select 
+        icao24,
+        velocity,
+            case
+                when velocity<100 then 'Slow'
+                when velocity>=100 and velocity<250 then 'Moderate'
+                else 'Fast'
+            end as Categorized_velocity
+    from flight_tracking
+    where velocity is not null
+)
+select 
+    Categorized_velocity,
+    count(*) as Total_Aircraft
+from flight_speed
+group by Categorized_velocity
+order by Total_Aircraft DESC;
+-- Find the top 5 countries with the highest number of aircraft flying in the air
+with flight_data as(
+    Select 
+        icao24,
+        origin_country,
+        on_ground
+    from flight_tracking
+    where on_ground=false
+),
+country_count as(
+    select 
+        origin_country,
+        count(*) as Total_aircraft
+    from flight_data
+    group by origin_country
+)
+select
+    * 
+from country_count
+order by Total_aircraft DESC
+limit 5;
+-- which country have the highest average altitude among aircraft currently flying
+with flight_data as (
+    select 
+        icao24,
+        origin_country,
+        baro_altitude
+    from flight_tracking
+    where baro_altitude is not null and on_ground=false
+),
+country_altitude as(
+    select 
+        origin_country,
+        avg(baro_altitude) as Avg_altitude,
+        count(*) as Total_aircraft
+    from flight_data
+    group by origin_country
+    order by Avg_altitude DESC
+)
+select
+    *
+from country_altitude
+limit 5;
+
+-- Find the Percentage flying versus aircraft on the ground
+with flight_status as(
+    select 
+        icao24,
+        on_ground
+    from flight_tracking
+),
+status_count as(
+    select 
+        case 
+            when on_ground=true then 'On Ground'
+            when on_ground=false then 'Flying'
+        end as Flight_Status,
+        count(*) as Total_aircraft
+    from flight_status
+    group by Flight_Status
+),
+status_percentage as(
+    select
+        Flight_Status,
+        Total_aircraft,
+        round(
+            (Total_aircraft*100.0/sum(Total_aircraft) over())
+            ,2) as Percentage
+    from status_count
+)
+SELECT * from status_percentage;
+
+-- find the top 5 countries having the highest average velocity, but only consider countries having at least 100 aircraft.
+with first_cte as(
+    select 
+        origin_country,
+        velocity
+    from flight_tracking
+    where velocity is not null
+),
+second_cte as(
+    select 
+        origin_country,
+        round(avg(velocity),2) as Avg_velocity,
+        count(*) as Total_Aircraft
+    from first_cte
+    group by origin_country
+)
+select
+    *
+from second_cte
+where Total_Aircraft>=100
+order by Avg_velocity DESC
+limit 5;
+-- Find the countries where the average aircraft velocity is greater than the overall average aircraft velocity
+with country_velocity as(
+    select 
+        origin_country,
+        avg(velocity) as Avg_Velocity
+    from flight_tracking
+    group by origin_country
+),
+overall_velocity as(
+    select avg(velocity) as Ov_avg_velocity
+    from flight_tracking
+)
+Select 
+    origin_country,
+    round(Avg_Velocity,2) as Average_Velocity_per_country,
+    round(Ov_avg_velocity,2) as Overall_Average_velocity
+from Overall_velocity as x
+cross join country_velocity as y
+where Avg_Velocity > Ov_avg_velocity
+order by Avg_Velocity DESC;
