@@ -1,0 +1,82 @@
+Create or replace database CDC_Practice;
+use CDC_Practice;
+create schema CDC_practice_Sch;
+use schema CDC_practice_sch;
+
+CREATE OR REPLACE TABLE CUSTOMERS_CDC (
+    CUSTOMER_ID INT,
+    CUSTOMER_NAME VARCHAR(50),
+    CITY VARCHAR(50),
+    BALANCE NUMBER(10,2)
+);
+
+INSERT INTO CUSTOMERS_CDC VALUES
+(101, 'Rahul', 'Jaipur', 5000),
+(102, 'Amit', 'Delhi', 7000),
+(103, 'Priya', 'Mumbai', 9000);
+
+SELECT * from CUSTOMERS_CDC;
+
+-- Insert Change
+insert into customers_cdc values
+(104, 'chandan', 'jaipur', 10000);
+
+-- Update change
+update customers_cdc 
+set city='Banglore'
+where customer_id=101;
+
+-- Delete change
+Delete from customers_cdc
+where customer_id=102;
+
+Select * from customers_cdc;
+
+create or replace stream customers_stream
+on table customers_cdc;
+
+show streams like 'customers_stream';
+
+select * from customers_stream;
+
+INSERT INTO CUSTOMERS_CDC
+(CUSTOMER_ID, CUSTOMER_NAME, CITY, BALANCE)
+VALUES
+(105, 'Neha', 'Jaipur', 8000);
+
+Select 
+    customer_id,
+    customer_name,
+    city,
+    balance,
+    metadata$action,
+    metadata$isupdate,
+    metadata$row_id
+from customers_stream;
+
+CREATE OR REPLACE TABLE CUSTOMERS_TARGET (
+    CUSTOMER_ID NUMBER,
+    CUSTOMER_NAME VARCHAR,
+    CITY VARCHAR,
+    BALANCE NUMBER
+);
+Insert into customers_target
+(
+    customer_id,
+    customer_name,
+    city,
+    balance
+)
+select 
+    customer_id,
+    customer_name,
+    city,
+    balance
+from customers_stream
+where Metadata$action='INSERT';
+
+select * from customers_target;
+select * from customers_stream;
+
+
+
