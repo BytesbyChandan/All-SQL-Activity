@@ -1,0 +1,72 @@
+-- variant data type
+use testdb;
+select current_database();
+use schema test_schema;
+desc schema test_schema;
+
+create or replace table employee(
+id int,
+details variant
+);
+
+insert into employee(id, details)
+select column1,
+parse_json(column2)
+from values(101, '{"name":"karan", "age":25, "city":"jaipur"}'),
+            (102, '{"name":"kshitiz", "age":29,"skill":["java","python","c#"]}'),
+            (103, '{"name":"priya", "salary":90000, "is_active":true}');
+
+select id, 
+        details:name as name,
+        details:age as age,
+        details:skill[0] as skill,
+        details:salary as salary
+from employee;
+
+select id, typeof(details) as datatype from employee;
+
+create or replace table customers_orders(
+order_id int,
+customer_details variant,
+order_details variant,
+payment_details variant
+);
+
+insert into customers_orders(
+order_id, customer_details, order_details, payment_details
+)
+select column1,
+parse_json(column2),
+parse_json(column3),
+parse_json(column4)
+from values(1, '{"cust_id":101, "cust_age":28,"cust_mob": [9878972399,9023894389]}',
+                '{"order_id":201, "food_item": "noodles", "type":"chinesse"}',
+                '{"payment_id":301, "transaction":"UPI", "price":200}'),
+                
+           (2, '{"cust_id":102, "cust_age":38,"cust_mob": [9875672399,9012894389]}',
+                '{"order_id":202, "food_item": "french fries", "type":"italian"}',
+                '{"payment_id":302, "transaction":"cash", "price":100}'),
+                
+           (3, '{"cust_id":103, "cust_age":32,"cust_mob": [8445672399,9863894389]}',
+                '{"order_id":203, "food_item": "pizza", "type":"italian"}',
+                '{"payment_id":303, "transaction":"NEFT", "price":450}');
+                
+select * from customers_orders;
+
+Select order_id, customer_details:cust_age as CustomerAge,
+                 customer_details:cust_id as CustomerId,
+                 customer_details:cust_mob[0] as Mobile_number,
+                 order_details:food_item as FoodItem,
+                 payment_details:payment_id as PayId,
+                 payment_details:transaction as Transactions
+from customers_orders;
+
+
+
+
+
+
+
+
+
+
