@@ -1,0 +1,79 @@
+create or replace database bronzedb;
+use bronzedb;
+create or replace schema bronze_sch;
+use schema bronze_sch;
+
+-- JSON DATA
+create or replace stage stg_json
+url = 's3://csv-my-bucket-007/'
+credentials = (
+    AWS_Key_Id = 
+    AWS_Secret_Key = 
+)
+file_format = (type='json');
+desc stage stg_json;
+list @stg_json;
+
+create or replace table bronze_json(raw variant);
+
+copy into bronze_json
+from @stg_json/iot_events_batch_01.json
+file_format=(type='json', strip_outer_array=true);
+
+select * from bronze_json;
+Select 
+    f.value:alert_type as Alert_type,
+    f.value:severity as Severity,
+    f.value:triggered_at as Trggered_at,
+    raw:device_id as Device_id,
+    raw:event_id as Event_id,
+    raw:event_type as Event_type,
+    raw:metadata:battery_pct as Battery_pct,
+    raw:metadata:firmware as Firmware,
+    raw:metadata:signal_rssi as SignalRssI
+from bronze_json,
+lateral flatten(input => raw:alerts) as f;
+
+-- CSV DATA
+create or replace stage stg_csv
+url = 's3://csv-my-bucket-007/'
+credentials = (
+    AWS_Key_Id = 
+    AWS_Secret_Key = 
+)
+file_format = (type='csv');
+
+desc stage stg_csv;
+list @stg_csv;
+
+select $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19 
+from @stg_csv/pos_batch_jan_apr.csv; 
+
+create or replace table bronze_csv(
+    transaction_id varchar(50),
+    store_id varchar(20),
+    store_name varchar(100),
+    store_city varchar(100),
+    store_region varchar(100),
+    cashier_id varchar(20),
+    customer_id varchar(20),
+    transaction_date date,
+    transaction_time time,
+    product_sku varchar(40),
+    product_name varchar(200),
+    category varchar(100),
+    subcategory varchar(100),
+    quantity int,
+    unit_price number(12,2),
+    discount_pct number(5,2),
+    total_amount number(12,2),
+    payment_method varchar(50),
+    loyalty_points number(10,2)
+);
+
+copy into bronze_csv
+from @stg_csv/pos_batch_jan_apr.csv
+file_format=(type='csv', skip_header = 1)
+on_error='skip_file';
+
+select * from bronze_csv;
