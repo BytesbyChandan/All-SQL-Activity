@@ -1,0 +1,69 @@
+use time_tr;
+create or replace table allowed_api_authentication_integrations(
+    log date,
+    message varchar(20)
+);
+
+create or replace table logss(
+    log_date date, message varchar(20)
+);
+
+create or replace task logss_task
+warehouse = 'COMPUTE_WH'
+schedule = '1 MINUTE'
+as 
+insert into logss values(current_date(), 'Hi Regex');
+
+select * from logss;
+
+alter task logss_task resume;
+desc task logss_task;
+alter task logss_task suspend;
+
+create or replace table customer(id int, name varchar(50));
+
+create or replace stream cust_stream
+on table customer;
+
+insert into customer values(1, 'Sam'), (2, 'Jack');
+insert into customer values(3, 'Sameer'), (4, 'Jacky');
+
+
+
+select system$stream_has_data('cust_stream');
+select * from cust_stream;
+
+merge into customer as c
+using cust_stream as cs
+on c.id = cs.id
+when matched
+    and metadata$action = 'DELETE'
+    and metadata$isupdate = 'FALSE'
+then delete
+when matched 
+    and metadata$action = 'INSERT'
+    and metadata$isupdate = 'TRUE'
+then update set c.name = cs.name
+when not matched
+    and metadata$action = 'INSERT'
+    and metadata$isupdate = 'TRUE'
+then insert (id, name)
+values (cs.id, cs.name);
+
+select * from customer;
+
+create or replace table employee(id int, name varchar(50), todays_date date);
+
+create or replace task e_task
+warehouse = 'COMPUTE_WH'
+when system$stream_has_data('cust_stream')
+as
+insert into employee(id, name, todays_date) select id, name, current_date() from cust_stream where metadata$action='INSERT' and metadata$isupdate='FALSE';
+
+alter task e_task resume;
+desc task e_task;
+alter task e_task suspend;
+
+select * from employee;
+show tasks;
+
