@@ -1,0 +1,55 @@
+use role accountadmin;
+create or replace database demo_db;
+create or replace table demo_db.public.customers(
+    id number,
+    name string,
+    email string
+);
+
+insert into demo_db.public.customers 
+values(1, 'Asha', 'asha@regex.com'),
+    (2,'Ravi', 'ravi@regex.com'),
+    (3, 'Meera', 'meera@regex.com');
+
+select * from demo_db.public.customers;
+
+create role if not exists analyst;
+
+grant usage on database demo_db to role analyst;
+grant select on table demo_db.public.customers to role analyst;
+
+select current_user();
+
+grant role analyst to user BYTESBYCHANDAN;
+
+use role accountadmin;
+
+select current_role();
+
+create or replace masking policy demo_db.public.email_mask as (val string)
+returns string ->
+    case 
+        when current_role() = 'ACCOUNTADMIN' then val 
+        else concat(LEFT(val, 1) || '*****' || SUBSTR(val, POSITION('@' IN val)))
+    end;
+
+alter table demo_db.public.customers
+modify column email
+set masking policy demo_db.public.email_mask;
+
+use role accountadmin;
+select * from demo_db.public.customers;
+
+use role analyst;
+select * from demo_db.public.customers;
+
+-- row based ghar pe
+
+
+
+
+
+
+
+
+
