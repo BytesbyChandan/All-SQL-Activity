@@ -1,0 +1,34 @@
+copy into @threetstage/csv/silver_csv
+from silver_csv
+file_format = (format_name = 'csv_ff');
+
+list @threetstage/csv;
+select  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+from @threetstage/csv/pos_transactions.csv;
+
+create or replace external table external_csv (
+    transaction_id VARCHAR(50) AS (VALUE:c1::VARCHAR),
+    store_id VARCHAR(20) AS (VALUE:c2::VARCHAR),
+    store_name VARCHAR(100) AS (VALUE:c3::VARCHAR),
+    store_city VARCHAR(100) AS (VALUE:c4::VARCHAR),
+    store_region VARCHAR(100) AS (VALUE:c5::VARCHAR),
+    cashier_id VARCHAR(20) AS (VALUE:c6::VARCHAR),
+    customer_id VARCHAR(20) AS (VALUE:c7::VARCHAR),
+    transaction_date DATE AS (VALUE:c8::DATE),
+    transaction_time TIME AS (VALUE:c9::TIME),
+    product_sku VARCHAR(40) AS (VALUE:c10::VARCHAR),
+    product_name VARCHAR(200) AS (VALUE:c11::VARCHAR),
+    category VARCHAR(100) AS (VALUE:c12::VARCHAR),
+    subcategory VARCHAR(100) AS (VALUE:c13::VARCHAR),
+    quantity INT AS (VALUE:c14::INT),
+    unit_price NUMBER(12,2) AS (VALUE:c15::NUMBER(12,2)),
+    discount_pct NUMBER(5,2) AS (VALUE:c16::NUMBER(5,2)),
+    total_amount NUMBER(12,2) AS (VALUE:c17::NUMBER(12,2)),
+    payment_method VARCHAR(50) AS (VALUE:c18::VARCHAR),
+    loyalty_points NUMBER(10,2) AS (VALUE:c19::NUMBER(10,2))
+)
+LOCATION = @threetstage/csv/
+FILE_FORMAT = (FORMAT_NAME = 'csv_ff');
+
+select * from external_csv;
+
