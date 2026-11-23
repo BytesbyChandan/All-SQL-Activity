@@ -1,0 +1,72 @@
+use role accountadmin;
+create or replace database demo_db;
+create or replace table demo_db.public.customers(
+    id number,
+    name string,
+    email string
+);
+
+insert into demo_db.public.customers 
+values(1, 'Asha', 'asha@regex.com'),
+    (2,'Ravi', 'ravi@regex.com'),
+    (3, 'Meera', 'meera@regex.com');
+
+select * from demo_db.public.customers;
+
+create role if not exists analyst;
+
+grant usage on database demo_db to role analyst;
+grant select on table demo_db.public.customers to role analyst;
+
+select current_user();
+
+grant role analyst to user BYTESBYCHANDAN;
+
+use role accountadmin;
+
+select current_role();
+
+create or replace masking policy demo_db.public.email_mask as (val string)
+returns string ->
+    case 
+        when current_role() = 'ACCOUNTADMIN' then val 
+        else concat(LEFT(val, 1) || '*****' || SUBSTR(val, POSITION('@' IN val)))
+    end;
+
+alter table demo_db.public.customers
+modify column email
+set masking policy demo_db.public.email_mask;
+
+use role accountadmin;
+select * from demo_db.public.customers;
+
+use role analyst;
+select * from demo_db.public.customers;
+
+CREATE OR REPLACE row access POLICY demo_db.public.city_policy
+AS (city VARCHAR)
+RETURNS BOOLEAN ->
+    CASE
+        WHEN CURRENT_ROLE() = 'ACCOUNTADMIN' THEN TRUE
+        WHEN CURRENT_ROLE() = 'ANALYST' AND city = 'Jaipur' THEN TRUE
+        ELSE FALSE
+    END;
+
+alter table demo_db.public.customers
+add column city varchar;
+
+ALTER TABLE demo_db.public.customers
+ADD ROW ACCESS POLICY demo_db.public.city_policy
+ON (city);
+
+USE ROLE ACCOUNTADMIN;
+
+SELECT * FROM demo_db.public.customers;
+
+USE ROLE ANALYST;
+
+SELECT * FROM demo_db.public.customers;
+
+update demo_db.public.customers
+set city = 'jaipur'
+where id = 1;
