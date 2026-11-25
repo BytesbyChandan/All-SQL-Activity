@@ -1,0 +1,411 @@
+create database Practice_subquery;
+use Practice_subquery;
+CREATE TABLE employees (
+    emp_id INT PRIMARY KEY,
+    emp_name VARCHAR(100),
+    department VARCHAR(50),
+    salary DECIMAL(10,2),
+    manager_id INT,
+    hire_year INT
+);
+
+INSERT INTO employees
+(emp_id, emp_name, department, salary, manager_id, hire_year)
+VALUES
+(101, 'Alice Johnson', 'IT', 72000, NULL, 2018),
+(102, 'Bob Smith', 'IT', 65000, 101, 2019),
+(103, 'Carol White', 'HR', 58000, NULL, 2017),
+(104, 'David Brown', 'HR', 54000, 103, 2020),
+(105, 'Eva Green', 'Finance', 80000, NULL, 2016),
+(106, 'Frank Black', 'Finance', 75000, 105, 2018),
+(107, 'Grace Lee', 'IT', 68000, 101, 2021),
+(108, 'Henry Wilson', 'Marketing', 60000, NULL, 2017),
+(109, 'Ivy Turner', 'Marketing', 56000, 108, 2022),
+(110, 'Jack Davis', 'Finance', 70000, 105, 2019),
+(111, 'Karen Moore', 'IT', 63000, 101, 2020),
+(112, 'Leo Harris', 'HR', 50000, 103, 2021),
+(113, 'Mia Clark', 'Marketing', 62000, 108, 2018),
+(114, 'Nate Lewis', 'Finance', 78000, 105, 2019),
+(115, 'Olivia Walker', 'IT', 71000, 101, 2017),
+(116, 'Paul Hall', 'HR', 53000, 103, 2020),
+(117, 'Quinn Young', 'Marketing', 59000, 108, 2021),
+(118, 'Rachel King', 'Finance', 82000, 105, 2016),
+(119, 'Sam Scott', 'IT', 66000, 101, 2022),
+(120, 'Tina Adams', 'HR', 55000, 103, 2019);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    product_id INT,
+    amount DECIMAL(10,2),
+    order_date DATE,
+    status VARCHAR(20)
+);
+
+INSERT INTO orders
+(order_id, customer_id, product_id, amount, order_date, status)
+VALUES
+(1001, 201, 301, 1500, '2024-01-05', 'Delivered'),
+(1002, 202, 302, 2300, '2024-01-12', 'Delivered'),
+(1003, 203, 303, 800, '2024-02-03', 'Delivered'),
+(1004, 201, 304, 3200, '2024-02-14', 'Delivered'),
+(1005, 204, 301, 1100, '2024-03-01', 'Pending'),
+(1006, 205, 302, 4500, '2024-03-15', 'Delivered'),
+(1007, 202, 303, 950, '2024-03-22', 'Cancelled'),
+(1008, 206, 304, 2100, '2024-04-05', 'Delivered'),
+(1009, 203, 301, 1750, '2024-04-18', 'Pending'),
+(1010, 207, 302, 3300, '2024-04-30', 'Delivered'),
+(1011, 204, 303, 680, '2024-05-10', 'Cancelled'),
+(1012, 208, 304, 2900, '2024-05-22', 'Delivered'),
+(1013, 205, 301, 1200, '2024-06-08', 'Delivered'),
+(1014, 201, 302, 2700, '2024-06-15', 'Pending'),
+(1015, 209, 303, 500, '2024-06-28', 'Delivered'),
+(1016, 206, 304, 3800, '2024-07-07', 'Delivered'),
+(1017, 207, 301, 1600, '2024-07-19', 'Delivered'),
+(1018, 210, 302, 4100, '2024-07-25', 'Delivered'),
+(1019, 208, 303, 720, '2024-08-02', 'Cancelled'),
+(1020, 209, 304, 2200, '2024-08-14', 'Delivered');
+
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_qty INT
+);
+
+INSERT INTO products
+(product_id, product_name, category, price, stock_qty)
+VALUES
+(301, 'Laptop', 'Electronics', 55000, 30),
+(302, 'Smartphone', 'Electronics', 22000, 80),
+(303, 'Headphones', 'Electronics', 3500, 120),
+(304, 'Monitor', 'Electronics', 18000, 45),
+(305, 'Keyboard', 'Accessories', 1500, 200),
+(306, 'Mouse', 'Accessories', 900, 250),
+(307, 'Desk Chair', 'Furniture', 8500, 40),
+(308, 'Standing Desk', 'Furniture', 22000, 15),
+(309, 'Webcam', 'Electronics', 4200, 70),
+(310, 'USB Hub', 'Accessories', 1200, 180),
+(311, 'Notebook', 'Stationery', 150, 500),
+(312, 'Pen Set', 'Stationery', 250, 600),
+(313, 'Printer', 'Electronics', 12000, 25),
+(314, 'Scanner', 'Electronics', 9000, 20),
+(315, 'External SSD', 'Electronics', 7500, 60),
+(316, 'Lamp', 'Furniture', 2200, 90),
+(317, 'Whiteboard', 'Office Supplies', 3800, 35),
+(318, 'Cable Organiser', 'Accessories', 600, 300),
+(319, 'Power Bank', 'Electronics', 2800, 100),
+(320, 'Smart Watch', 'Electronics', 15000, 55);
+
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    city VARCHAR(50),
+    country VARCHAR(50),
+    join_year INT
+);
+
+INSERT INTO customers
+(customer_id, customer_name, city, country, join_year)
+VALUES
+(201, 'Aarav Mehta', 'Mumbai', 'India', 2021),
+(202, 'Priya Sharma', 'Delhi', 'India', 2020),
+(203, 'Rohan Gupta', 'Pune', 'India', 2022),
+(204, 'Sunita Patel', 'Ahmedabad', 'India', 2021),
+(205, 'Vikram Rao', 'Bangalore', 'India', 2019),
+(206, 'Neha Singh', 'Chennai', 'India', 2023),
+(207, 'Arjun Kumar', 'Hyderabad', 'India', 2020),
+(208, 'Deepa Nair', 'Kochi', 'India', 2022),
+(209, 'Sanjay Joshi', 'Jaipur', 'India', 2021),
+(210, 'Meera Iyer', 'Coimbatore', 'India', 2023),
+(211, 'Ravi Verma', 'Lucknow', 'India', 2020),
+(212, 'Anita Das', 'Kolkata', 'India', 2019),
+(213, 'Kiran Reddy', 'Vizag', 'India', 2022),
+(214, 'Pooja Shah', 'Surat', 'India', 2021),
+(215, 'Amit Bose', 'Nagpur', 'India', 2023),
+(216, 'Tara Menon', 'Trivandrum', 'India', 2020),
+(217, 'Nikhil Kulkarni', 'Nashik', 'India', 2022),
+(218, 'Swati Chatterjee', 'Bhopal', 'India', 2019),
+(219, 'Rahul Pandey', 'Patna', 'India', 2021),
+(220, 'Divya Tiwari', 'Indore', 'India', 2023);
+
+Select * from employees;
+Select emp_name, salary from employees;
+select * from employees where salary>65000;
+select * from employees where department = 'IT';
+select * from employees where salary between 55000 and 75000;
+select * from employees where hire_year>2019;
+select distinct department from employees;
+select * from employees where emp_name like 'A%';
+select * from employees order by salary desc limit 5;
+select min(salary) as Minimum, max(salary) as Maximum, avg(salary) as Average from employees;
+select department, count(emp_id) as No_of_emp
+from employees
+group by department;
+select department, count(emp_id) as No_of_emp
+from employees
+group by department 
+having count(emp_id)>4;
+select department, sum(salary) as salary_expenditure
+from employees
+group by department;
+select count(*) as total_num from orders;
+select * from orders;
+select sum(amount) as total_revenue
+from orders 
+where status = 'Delivered';
+select * from employees;
+
+select e1.emp_name, e2.emp_name as Manager
+from employees as e1
+left join employees as e2 
+on e2.emp_id = e1.manager_id;
+
+select * from customers;
+select * from orders;
+select * from products;
+select * from employees;
+
+with second_high as (select department, sum(salary) as Total_salary, dense_rank() over(order by sum(salary) desc) as rnk
+from employees
+where department is not null
+group by department)
+select department
+from second_high
+where rnk=2;
+
+select distinct o.customer_id, c.city, max(amount) over(partition by c.city) as max_spend
+from customers as c
+inner join orders as o
+on c.customer_id = o.customer_id
+order by c.city asc;
+
+
+select *
+from employees as e1
+where hire_year =any (select hire_year from employees as e2 where e1.emp_id = e2.manager_id );
+
+
+select * from products where price>all
+(select avg(price) over(partition by category) from products);
+
+select c.customer_name, o.order_id
+from customers as c
+inner join orders as o
+on c.customer_id = o.customer_id
+where o.order_date between '2024-01-01' and '2024-01-31';
+
+
+
+select p.product_name, count(o.product_id) as ordered_count
+from orders as o
+inner join products as p
+on o.product_id = p.product_id
+group by p.product_name
+order by ordered_count desc
+limit 1;
+
+with second_high as (select customer_id, amount, rank() over(partition by customer_id order by amount desc) as high_o_amount from orders)
+select customer_id, amount
+from second_high
+where high_o_amount=2;
+
+select customer_id, sum(amount) as total_spending from orders group by customer_id having total_spending>all
+(select round(avg(amount) over(partition by customer_id),2) as avg_spend_cust from orders);
+
+select salary from employees;
+with diff as (select emp_id, department, salary, avg(salary) over(partition by department) as avg_sal_dept from employees)
+select emp_id, salary-avg_sal_dept as difference from diff; 
+
+select emp_id, emp_name, lag(salary) over() as previous_sal from employees;
+select emp_id, emp_name, lead(salary) over() as previous_sal from employees;
+
+select emp_id, emp_name, salary, hire_year, sum(salary) over(order by hire_year desc) as total_sal_by_year
+from employees;
+
+
+with third_high as (select distinct salary, dense_rank() over(order by salary desc) as rnk from employees)
+select salary, rnk from third_heigh where rnk=3;
+
+
+select * from employees
+where salary>(select avg(salary) from employees);
+
+
+
+select emp_id, emp_name, department, rank() over( partition by department order by salary) as rnk
+from employees;
+
+select * from employees;
+with high_paid_emp as(select emp_name, department, rank() over(partition by department order by salary desc) as rnk
+from employees)
+select emp_name, department
+from high_paid_emp where rnk between 1 and 2;
+
+
+
+
+with second_salary as (select department, dense_rank() over(order by salary) as rnk
+from employees)
+select * from second_salary where rnk=2 group by department;
+
+with second_sal as(select department,salary, dense_rank() over(partition by department order by salary desc) as rnk from employees)
+select department, salary from second_sal where rnk=2 ;
+
+
+
+WITH dept_ranked_sal AS (
+    SELECT
+        department,
+        salary,
+        DENSE_RANK() OVER (
+            PARTITION BY department
+            ORDER BY salary DESC
+        ) AS rnk
+    FROM employees
+    WHERE salary IS NOT NULL
+)
+SELECT DISTINCT
+    department,
+    salary AS second_highest_salary
+FROM dept_ranked_sal
+WHERE rnk = 2;
+
+select department, avg(salary) as avg_salary
+from employees
+group by department
+order by avg_salary desc
+limit 1;
+
+
+
+
+
+select emp_id, emp_name, case
+	when salary>70000 then 'High'
+    when salary between 55000 and 69999 then 'Medium'
+    when salary<55000 then 'Low'
+    else 'not applicable'
+    end as salary_category
+from employees;
+
+
+
+
+
+
+select distinct o.customer_id, c.customer_name
+from customers as c
+inner join orders as o
+on c.customer_id = o.customer_id
+where o.status = 'Delivered';  
+
+
+
+
+select * from employees as e1
+inner join employees as e2
+on e1.manager_id = e2.emp_id
+where e1.salary>e2.salary;
+
+
+select * from orders
+where amount>
+(select avg(amount) from orders);
+
+
+select month(order_date) as Month, sum(amount) as Sale_by_month
+from orders
+group by Month;
+
+
+
+
+
+select status, count(*) as order_count
+from orders
+where status in ('Delivered', 'Pending', 'Cancelled')
+group by status;
+
+
+
+select customer_id, sum(amount) as Order_amount
+from orders
+group by customer_id;
+
+
+
+with number_of_order as(select customer_id, count(order_id) as Total_order
+from orders 
+group by customer_id)
+select * from number_of_order where Total_order>1;
+
+
+
+
+
+
+
+select * 
+from employees as e1
+where salary >
+(select avg(salary) from employees as e2 where e1.department = e2.department);
+
+select salary from employees order by salary desc;
+
+with ranking as (select salary, rank() over(order by salary desc) as rnk
+from employees)
+select * from ranking
+where rnk=1;
+
+select emp_id, department, max(salary) as Highest_paid_employee 
+from employees 
+group by department;
+
+
+select p.*
+from products as p
+left join orders as o
+on p.product_id = o.product_id
+where o.product_id is null;
+
+select * from employees 
+where salary >
+(select avg(salary) from employees);
+
+
+select c.customer_id
+from customers as c
+left join orders as o 
+on c.customer_id = o.customer_id
+where o.customer_id is null;
+
+
+
+
+
+
+select distinct c.customer_id
+from customers as c 
+inner join orders as o
+on c.customer_id = o.customer_id;
+
+
+
+
+
+
+
+
+select c.customer_name, o.order_id, o.product_id, o.amount, o.order_date, o.status
+from customers as c
+right join orders as o 
+on c.customer_id = o.customer_id;
+
+select p.product_name, o.order_id, o.product_id, o.amount, o.order_date, o.status
+from products as p 
+right join orders as o
+on p.product_id = o.product_id;
+
+
